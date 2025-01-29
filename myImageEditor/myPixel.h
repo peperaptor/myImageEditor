@@ -12,10 +12,12 @@ public:
     unsigned char b;
 
     MyPixel();
+    void adjustBrightness(const double& coeff);
+    void adjustContrast(const int& coeff);
 
 private:
-    void multiply(const double coeff);
+    unsigned char getNewValueBrightness(const unsigned char& initialValue, const double& coeff);
+    unsigned char getNewValueContrast(const unsigned char& initialValue, const int& coeff);
 };
-
 
 #endif // MYPIXEL_H

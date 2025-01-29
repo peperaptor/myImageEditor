@@ -8,15 +8,8 @@
 int main()
 {
     PPMImageFormat ppmFormat{};
-    try
-    {
-        ppmFormat.init("input.ppm");
-    }
-    catch (const std::invalid_argument& e)
-    {
-        std::cout << "oops " << e.what() << std::endl;
-    }
-    Graphics graphics(ppmFormat);
+    PPMImageFormat ppmFormatEmpty{};
+    Graphics graphics(ppmFormat, ppmFormatEmpty);
     graphics.run();
     return 0;
 }

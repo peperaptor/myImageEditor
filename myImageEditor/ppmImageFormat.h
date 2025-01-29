@@ -6,13 +6,14 @@
 class PPMImageFormat : public ImageFormat
 {
 public:
-    void init(const std::string& fileName) override;
+    void init(const std::wstring& fileName) override;
+    void write() const override;
 
 private:
 
     const char myFileFormat[3]{ "P6" };
 
-    bool checkWidthHeightMaxColorValue(size_t width, size_t height, size_t maxColorValue);
+    bool checkWidthHeightMaxColorValue(size_t width, size_t height, size_t maxColorValue) const;
 };
 
 #endif // PPMIMAGEFORMAT_H

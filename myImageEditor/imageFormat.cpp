@@ -11,18 +11,34 @@ ImageFormat::ImageFormat() :
 
 }
 
-//ImageFormat::ImageFormat(ImageFormat & other)
-//{
-//    this->setWidth(other.getWidth());
-//    this->setHeight(other.getHeight());
-//    this->setImageFileName(other.getImageFileName());
-//    this->pixels = {other.pixels};
-//}
-
-std::ostream& operator<<(std::ostream& os, const ImageFormat& imageFormat)
+ImageFormat::ImageFormat(const ImageFormat& other) :
+    width(other.getWidth()),
+    height(other.getHeight()),
+    imageFileName(other.imageFileName),
+    pixels(other.pixels)
 {
-    os << imageFormat.getWidth() << ' / ' << imageFormat.getHeight() << ' / ' << imageFormat.getImageFileName();
-    return os;
+
+}
+
+void ImageFormat::init()
+{
+    init(imageFileName);
+}
+
+void ImageFormat::adjustBrightness(const double& coeff)
+{
+    for (auto& pixel : pixels)
+    {
+        pixel.adjustBrightness(coeff);
+    }
+}
+
+void ImageFormat::adjustContrast(const int& coeff)
+{
+    for (auto& pixel : pixels)
+    {
+        pixel.adjustContrast(coeff);
+    }
 }
 
 size_t ImageFormat::getWidth() const
@@ -43,14 +59,4 @@ size_t ImageFormat::getHeight() const
 void ImageFormat::setHeight(const size_t& height)
 {
     this->height = height;
-}
-
-std::string ImageFormat::getImageFileName() const
-{
-    return imageFileName;
-}
-
-void ImageFormat::setImageFileName(const std::string& fileName)
-{
-    imageFileName = fileName;
 }

@@ -142,14 +142,12 @@
     <ClCompile Include="graphics.cpp" />
     <ClCompile Include="imageFormat.cpp" />
     <ClCompile Include="myImageEditor.cpp" />
-    <ClCompile Include="myImageFormat.cpp" />
     <ClCompile Include="myPixel.cpp" />
     <ClCompile Include="ppmImageFormat.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="graphics.h" />
     <ClInclude Include="imageFormat.h" />
-    <ClInclude Include="myImageFormat.h" />
     <ClInclude Include="myPixel.h" />
     <ClInclude Include="ppmImageFormat.h" />
   </ItemGroup>

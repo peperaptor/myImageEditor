@@ -21,9 +21,6 @@
     <ClCompile Include="myPixel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="myImageFormat.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="imageFormat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -36,9 +33,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myPixel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="myImageFormat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="imageFormat.h">

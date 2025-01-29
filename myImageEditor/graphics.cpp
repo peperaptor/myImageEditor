@@ -1,15 +1,20 @@
 
 #include <windows.h>
 #include <CommCtrl.h>
+#include <Commdlg.h>
 #include "graphics.h"
+#include "ppmImageFormat.h"
 
-Graphics::Graphics(const ImageFormat& img) :
-    image(img), 
+Graphics::Graphics(ImageFormat& img, ImageFormat& newImage) :
+    sourceImage(img),
+    currentImage(newImage),
     hInstance(GetModuleHandle(NULL)), 
     hwnd(NULL), 
     hBitmap(NULL),
     hSlider1(NULL),
-    hSlider2(NULL)
+    hSlider2(NULL),
+    slider1Value(slider1Base),
+    slider2Value(slider2Base)
 {
 
 }
@@ -56,10 +61,17 @@ void Graphics::createWindow()
         exit(1);
     }
 
+    HMENU hMenu = CreateMenu();
+    HMENU hFileMenu = CreateMenu();
+    AppendMenu(hFileMenu, MF_STRING, 1, L"Open file");
+    AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hFileMenu, L"File");
+    AppendMenu(hFileMenu, MF_STRING, 2, L"Save file");
+    SetMenu(hwnd, hMenu);
+
     ShowWindow(hwnd, SW_SHOW);
 }
 
-void Graphics::createBitmap()
+void Graphics::createBitmap(const ImageFormat& image)
 {
     BITMAPINFO bmi = {};
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -78,11 +90,15 @@ void Graphics::createBitmap()
     }
 
     HDC hdc = GetDC(hwnd);
+    if (hBitmap)
+    {
+        DeleteObject(hBitmap);
+    }
     hBitmap = CreateDIBitmap(hdc, &bmi.bmiHeader, CBM_INIT, bitmapData.data(), &bmi, DIB_RGB_COLORS);
     ReleaseDC(hwnd, hdc);
 }
 
-void Graphics::createSlider(HWND& hwnd, size_t positionW, size_t positionH, size_t id)
+void Graphics::createSlider(HWND& hwnd, size_t positionW, size_t positionH, size_t id, size_t min, size_t max, size_t base)
 {
     hwnd = CreateWindowEx(0,
                           L"msctls_trackbar32",
@@ -97,17 +113,18 @@ void Graphics::createSlider(HWND& hwnd, size_t positionW, size_t positionH, size
                           hInstance,
                           NULL);
 
-    SendMessage(hwnd, TBM_SETRANGE, TRUE, MAKELONG(0, 100)); // Set range from 0 to 100
-    SendMessage(hwnd, TBM_SETPOS, TRUE, 50);
+    SendMessage(hwnd, TBM_SETRANGE, TRUE, MAKELONG(min, max));
+    SendMessage(hwnd, TBM_SETPOS, TRUE, base);
 }
 
 
 void Graphics::run()
 {
     createWindow();
-    createSlider(hSlider1, 50, 20, 1);
-    createSlider(hSlider2, 50, 55, 2);
-    createBitmap();
+    createSlider(hSlider1, 50, 20, 1, slider1Min, slider1Max, slider1Base);
+    createSlider(hSlider2, 50, 55, 2, slider2Min, slider2Max, slider2Base);
+    createBitmap(sourceImage);
+    InvalidateRect(hwnd, NULL, TRUE);
 
     MSG msg = {};
     while (GetMessage(&msg, NULL, 0, 0))
@@ -115,11 +132,6 @@ void Graphics::run()
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
-}
-
-void Graphics::setImage(const ImageFormat& image)
-{
-    //
 }
 
 LRESULT CALLBACK Graphics::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -136,27 +148,88 @@ LRESULT CALLBACK Graphics::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
     {
         switch (msg)
         {
-        case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hwnd, &ps);
+            case WM_PAINT:
+            {
+                PAINTSTRUCT ps;
+                HDC hdc = BeginPaint(hwnd, &ps);
+                if (graphics->hBitmap)
+                {
+                    HDC hdcMem = CreateCompatibleDC(hdc);
+                    SelectObject(hdcMem, graphics->hBitmap);
 
-            HDC hdcMem = CreateCompatibleDC(hdc);
-            SelectObject(hdcMem, graphics->hBitmap);
+                    BitBlt(hdc, 50, 90, graphics->sourceImage.getWidth(), graphics->sourceImage.getHeight(), hdcMem, 0, 0, SRCCOPY);
 
-            BitBlt(hdc, 50, 90, graphics->image.getWidth(), graphics->image.getHeight(), hdcMem, 0, 0, SRCCOPY);
+                    DeleteDC(hdcMem);
+                }
+                EndPaint(hwnd, &ps);
+                InvalidateRect(hwnd, NULL, TRUE);
+                break;
+            }
+            case WM_HSCROLL:
+            {
+                HWND slider = reinterpret_cast<HWND>(lParam);
+                if (slider == graphics->hSlider1)
+                {
+                    graphics->slider1Value = SendMessage(slider, TBM_GETPOS, 0, 0);
+                    graphics->updateImage(true, false);
+                }
+                else if (slider == graphics->hSlider2)
+                {
+                    graphics->slider2Value = SendMessage(slider, TBM_GETPOS, 0, 0);
+                    graphics->updateImage(false, true);
+                }
+                InvalidateRect(hwnd, NULL, TRUE);
+                break;
+            }
+            case WM_COMMAND:
+            {
+                if (LOWORD(wParam) == 1) 
+                {
+                    OPENFILENAME ofn;
+                    wchar_t fileName[MAX_PATH] = L"";
 
-            DeleteDC(hdcMem);
-            EndPaint(hwnd, &ps);
-            break;
-        }
-        case WM_DESTROY:
-        {
-            PostQuitMessage(0);
-            break;
-        }
-        default:
-            return DefWindowProc(hwnd, msg, wParam, lParam);
+                    ZeroMemory(&ofn, sizeof(ofn));
+                    ofn.lStructSize = sizeof(ofn);
+                    ofn.hwndOwner = hwnd;
+                    ofn.lpstrFilter = L"PPM Files\0*.ppm\0All Files\0*.*\0";
+                    ofn.lpstrFile = fileName;
+                    ofn.nMaxFile = MAX_PATH;
+                    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+
+                    if (GetOpenFileName(&ofn))
+                    {
+                        try
+                        {
+                            graphics->sourceImage.init(fileName);
+                        }
+                        catch (const std::invalid_argument& e)
+                        {
+                            std::cout << ":( " << e.what() << std::endl;
+                        }
+                    }
+                }
+                else if (LOWORD(wParam) == 2)
+                {
+                    try
+                    {
+                        graphics->currentImage.write();
+                    }
+                    catch (const std::invalid_argument& e)
+                    {
+                        std::cout << "oops " << e.what() << std::endl;
+                    }
+                }
+
+                InvalidateRect(hwnd, NULL, TRUE);
+                break;
+            }
+            case WM_DESTROY:
+            {
+                PostQuitMessage(0);
+                break;
+            }
+            default:
+                return DefWindowProc(hwnd, msg, wParam, lParam);
         }
     }
     else
@@ -165,4 +238,19 @@ LRESULT CALLBACK Graphics::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
     }
 
     return 0;
+}
+
+void Graphics::updateImage(bool fromSlider1, bool fromSlider2)
+{
+    currentImage = { sourceImage };
+    if (fromSlider1)
+    {
+        currentImage.adjustBrightness(static_cast<double>(slider1Value / 100.0));
+    }
+    else if (fromSlider2)
+    {
+        currentImage.adjustContrast(static_cast<int>(slider2Value));
+    }
+
+    createBitmap(currentImage);
 }
