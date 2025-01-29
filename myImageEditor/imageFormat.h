@@ -18,7 +18,7 @@ public:
     void init();
     virtual void write() const = 0;
 
-    void adjustBrightness(const double& coeff);
+    void adjustBrightness(const double& coeff); // both adjusts can be done using template functions, but if so, there will be logic problem (they may be vary much in realization)
     void adjustContrast(const int& coeff);
 
     size_t getWidth() const;
@@ -31,6 +31,9 @@ public:
     std::wstring imageFileName;
 
 private:
+
+    void adjustBrightnessInRange(std::vector<MyPixel>::iterator start, std::vector<MyPixel>::iterator end, const double& coeff);
+    void adjustContrastInRange(std::vector<MyPixel>::iterator start, std::vector<MyPixel>::iterator end, const int& coeff);
 
     size_t width;
     size_t height;
