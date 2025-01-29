@@ -33,8 +33,8 @@ private:
     void createBitmap(const ImageFormat& image);
     void updateImage(bool fromSlider1, bool fromSlider2); // lot of things can be done with enum, but im just too lazy
 
-    const int slider1Min = { 0 }, slider1Max{ 200 }, slider1Base{ 100 };
-    const int slider2Min = { -255 }, slider2Max{ 255 }, slider2Base{ 0 };
+    static const int slider1Min = { 0 }, slider1Max{ 200 }, slider1Base{ 100 };
+    static const int slider2Min = { -255 }, slider2Max{ 255 }, slider2Base{ 0 };
 };
 
 #endif // GRAPHIC_H

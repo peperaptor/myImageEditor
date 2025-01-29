@@ -38,23 +38,22 @@ void Graphics::createWindow()
 
     RegisterClass(&wc);
 
+    RECT rect;
+    SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
+
     hwnd = CreateWindowEx(0, 
                           CLASS_NAME, 
                           L"Image Viewer", 
-                          WS_OVERLAPPEDWINDOW,
+                          WS_OVERLAPPEDWINDOW | WS_SYSMENU,
                           CW_USEDEFAULT, 
                           CW_USEDEFAULT, 
-                          0, 
-                          0,           
+                          rect.right - rect.left,
+                          rect.bottom - rect.top,
                           NULL,
                           NULL, 
                           hInstance, 
                           this);
 
-    RECT rect;
-    SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
-    SetWindowLong(hwnd, GWL_STYLE, WS_POPUP | WS_VISIBLE | WS_MINIMIZEBOX);
-    SetWindowPos(hwnd, NULL, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
 
     if (!hwnd)
     {
@@ -92,6 +91,7 @@ void Graphics::createBitmap(const ImageFormat& image)
     HDC hdc = GetDC(hwnd);
     if (hBitmap)
     {
+        InvalidateRect(hwnd, NULL, TRUE);
         DeleteObject(hBitmap);
     }
     hBitmap = CreateDIBitmap(hdc, &bmi.bmiHeader, CBM_INIT, bitmapData.data(), &bmi, DIB_RGB_COLORS);
@@ -152,17 +152,21 @@ LRESULT CALLBACK Graphics::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
             {
                 PAINTSTRUCT ps;
                 HDC hdc = BeginPaint(hwnd, &ps);
+
+                RECT rect;
+                GetClientRect(hwnd, &rect);
+                FillRect(hdc, &rect, (HBRUSH)(COLOR_WINDOW + 1));
+                
                 if (graphics->hBitmap)
                 {
                     HDC hdcMem = CreateCompatibleDC(hdc);
                     SelectObject(hdcMem, graphics->hBitmap);
 
-                    BitBlt(hdc, 50, 90, graphics->sourceImage.getWidth(), graphics->sourceImage.getHeight(), hdcMem, 0, 0, SRCCOPY);
+                    BitBlt(hdc, 30, 100, graphics->sourceImage.getWidth(), graphics->sourceImage.getHeight(), hdcMem, 0, 0, SRCCOPY);
 
                     DeleteDC(hdcMem);
                 }
                 EndPaint(hwnd, &ps);
-                InvalidateRect(hwnd, NULL, TRUE);
                 break;
             }
             case WM_HSCROLL:

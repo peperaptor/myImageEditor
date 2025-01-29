@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-struct MyPixel 
+class MyPixel 
 {
 public:
     unsigned char r;
@@ -15,9 +15,16 @@ public:
     void adjustBrightness(const double& coeff);
     void adjustContrast(const int& coeff);
 
+
 private:
-    unsigned char getNewValueBrightness(const unsigned char& initialValue, const double& coeff);
+    unsigned char getNewValueBrightnessNaive(const unsigned char& initialValue, const double& coeff);
     unsigned char getNewValueContrast(const unsigned char& initialValue, const int& coeff);
+
+    void applyGammaCorrection(unsigned char& channel, const double& gamma, const double& coeff);
+    void applyContrast(unsigned char& channel, const double& mean, const double& contrast);
+
+    double gamma = 2.2;
+
 };
 
 #endif // MYPIXEL_H

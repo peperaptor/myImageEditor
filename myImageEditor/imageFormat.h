@@ -7,7 +7,7 @@
 #include "myPixel.h"
 #include <iostream>
 
-class ImageFormat // base class for all image formates (if there will be more than one...)
+class ImageFormat
 {
 public:
 

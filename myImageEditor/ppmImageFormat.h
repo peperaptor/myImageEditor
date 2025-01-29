@@ -1,5 +1,6 @@
 #ifndef PPMIMAGEFORMAT_H
 #define PPMIMAGEFORMAT_H
+
 #include "imageFormat.h"
 #include <string>
 
