@@ -1,5 +1,5 @@
-Just simple image editor, that allows to change brightness or contrast.
-Works only for PPM images.
-I wasnt used Cmake because it was just a small work, to test if im able to process images.
-For same reason i didnt used such patterns as Abstract factory for opening images, Bridge for image format imple, singlton for main thread and so on.
-I didnt used any lib for image processing for same reason, and i didnt used QT  or whatsoever beause it was requiered, to not use them.
+Just a simple image editor that allows changing brightness or contrast.
+It works only for PPM images.
+I didn't use CMake because it was just a small project to test if I am able to process images.
+For the same reason, I didn't use patterns such as Abstract Factory for opening images, Bridge for image format implementation, Singleton for the main thread, and so on.
+I didn't use any library for image processing for the same reason, and I didn't use QT or anything similar because it was required not to use them.
